@@ -5,6 +5,16 @@ from .sha384 import SHA384
 from .sha512 import SHA512
 
 __version__ = "0.0.1"
-__all__     = (
-    "sha1", "sha224", "sha256", "sha384", "sha512", "utils"
-) 
+
+def new(algorithm):
+    obj = {
+        "sha1"   :  SHA1,
+        "sha224" :  SHA224,
+        "sha256" :  SHA256,
+        "sha384" :  SHA384,
+        "sha512" :  SHA512
+    }[algorithm]()
+
+    return obj
+
+__all__ = ("new", ) 

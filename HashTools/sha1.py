@@ -51,7 +51,8 @@ class SHA1(HASH):
 
     def _hashing(self):
         # preprocessing
-        super()._preprocessing()
+        padded_message = self._padding()                # padding
+        blocks         = self._parsing(padded_message)  # parsing
 
         # Setting Initial Hash Value
         h0, h1, h2, h3, h4 = [
@@ -59,28 +60,28 @@ class SHA1(HASH):
         ]
 
         # SHA-1 Hashing Algorithm
-        for message_block in self.blocks:
+        for message_block in blocks:
             
             ''' Step 1: Prepare the message shedule.
             '''
-            message_schedule = []
+            W = []
             for t in range(80):
                 if t <= 15:
-                    message_schedule.append(bytes(message_block[4*t: 4*(t + 1)]))
+                    W.append(bytes(message_block[4*t: 4*(t + 1)]))
 
                 else:
-                    term1 = int.from_bytes(message_schedule[t - 3 ] , byteorder='big')
-                    term2 = int.from_bytes(message_schedule[t - 8 ] , byteorder='big')
-                    term3 = int.from_bytes(message_schedule[t - 14] , byteorder='big')
-                    term4 = int.from_bytes(message_schedule[t - 16] , byteorder='big')
+                    term1 = int.from_bytes(W[t - 3 ] , byteorder='big')
+                    term2 = int.from_bytes(W[t - 8 ] , byteorder='big')
+                    term3 = int.from_bytes(W[t - 14] , byteorder='big')
+                    term4 = int.from_bytes(W[t - 16] , byteorder='big')
 
 
                     schedule = (
                         CONST.ROTL(x=term1 ^ term2 ^ term3 ^ term4, shift=1)
                     ).to_bytes(length=4, byteorder='big')
-                    message_schedule.append(schedule)
+                    W.append(schedule)
 
-            assert len(message_schedule) == 80
+            assert len(W) == 80
 
             ''' Step 2: Initialize the eight working variables with the   
                     (i-1)-st hash value.
@@ -109,7 +110,7 @@ class SHA1(HASH):
                     f = CONST.Parity(b, c, d)
                     K = CONST.K[3]
             
-                T =  CONST.ROTL(x=a, shift=5) + f + e + K + int.from_bytes(message_schedule[t], byteorder='big')
+                T =  CONST.ROTL(x=a, shift=5) + f + e + K + int.from_bytes(W[t], byteorder='big')
                 e = d
                 d = c
                 c = CONST.ROTL(x=b, shift=30)
@@ -124,7 +125,7 @@ class SHA1(HASH):
             h3 = (h3 + d) & 0xffffffff
             h4 = (h4 + e) & 0xffffffff
         
-        # Resulting 256-bit message digest
+        # Resulting 160-bit message digest
         return  (h0).to_bytes(4, byteorder='big') + (h1).to_bytes(4, byteorder='big') + \
                 (h2).to_bytes(4, byteorder='big') + (h3).to_bytes(4, byteorder='big') + \
                 (h4).to_bytes(4, byteorder='big') 

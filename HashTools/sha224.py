@@ -79,7 +79,8 @@ class SHA224(HASH):
 
     def _hashing(self):
         # preprocessing
-        super()._preprocessing()
+        padded_message = self._padding()                # padding
+        blocks         = self._parsing(padded_message)  # parsing
 
         # Setting Initial Hash Value
         h0, h1, h2, h3, h4, h5, h6, h7 = [
@@ -88,26 +89,26 @@ class SHA224(HASH):
         ]
 
         # SHA-224 Hashing Algorithm
-        for message_block in self.blocks:
+        for message_block in blocks:
             
             ''' Step 1: Prepare the message shedule.
             '''
-            message_schedule = []
+            W = []
             for t in range(64):
                 if t <= 15:
-                    message_schedule.append(bytes(message_block[4*t: 4*(t + 1)]))
+                    W.append(bytes(message_block[4*t: 4*(t + 1)]))
 
                 else:
-                    term1 = CONST.sigma1(int.from_bytes(message_schedule[t - 2] , byteorder='big'))
-                    term2 =              int.from_bytes(message_schedule[t - 7] , byteorder='big')
-                    term3 = CONST.sigma0(int.from_bytes(message_schedule[t - 15], byteorder='big'))
-                    term4 =              int.from_bytes(message_schedule[t - 16], byteorder='big')
+                    term1 = CONST.sigma1(int.from_bytes(W[t - 2] , byteorder='big'))
+                    term2 =              int.from_bytes(W[t - 7] , byteorder='big')
+                    term3 = CONST.sigma0(int.from_bytes(W[t - 15], byteorder='big'))
+                    term4 =              int.from_bytes(W[t - 16], byteorder='big')
 
                     schedule = (
                         (term1 + term2 + term3 + term4) & 0xffffffff
                     ).to_bytes(length=4, byteorder='big')
-                    message_schedule.append(schedule)
-            assert len(message_schedule) == 64
+                    W.append(schedule)
+            assert len(W) == 64
 
             ''' Step 2: Initialize the eight working variables with the   
                     (i-1)-st hash value.
@@ -120,7 +121,7 @@ class SHA224(HASH):
             '''
             for t in range(64):
                 T1 = h + CONST.SIGMA1(e) + CONST.Ch(e, f, g) + CONST.K[t] + \
-                            int.from_bytes(message_schedule[t], byteorder='big')
+                            int.from_bytes(W[t], byteorder='big')
                 T2 = CONST.SIGMA0(a) + CONST.Maj(a, b, c)
 
                 h = g
@@ -143,7 +144,7 @@ class SHA224(HASH):
             h6 = (h6 + g) & 0xffffffff
             h7 = (h7 + h) & 0xffffffff
         
-        # Resulting 256-bit message digest
+        # Resulting 224-bit message digest
         return  (h0).to_bytes(4, byteorder='big') + (h1).to_bytes(4, byteorder='big') + \
                 (h2).to_bytes(4, byteorder='big') + (h3).to_bytes(4, byteorder='big') + \
                 (h4).to_bytes(4, byteorder='big') + (h5).to_bytes(4, byteorder='big') + \
