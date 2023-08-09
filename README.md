@@ -48,4 +48,4 @@ Update later
 
 # References
 
-- [1](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf) Standard, D. E. (1977). Federal information processing standards publication 46. National Bureau of Standards, US Department of Commerce, 23, 1-18.
+- Standard, D. E. (1977). Federal information processing standards publication 46. National Bureau of Standards, US Department of Commerce, 23, 1-18.
