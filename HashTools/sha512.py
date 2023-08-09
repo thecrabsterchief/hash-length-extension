@@ -105,22 +105,22 @@ class SHA512(HASH):
             
             ''' Step 1: Prepare the message shedule.
             '''
-            message_schedule = []
+            W = []
             for t in range(80):
                 if t <= 15:
-                    message_schedule.append(bytes(message_block[8*t: 8*(t + 1)]))
+                    W.append(bytes(message_block[8*t: 8*(t + 1)]))
 
                 else:
-                    term1 = CONST.sigma1(int.from_bytes(message_schedule[t - 2] , byteorder='big'))
-                    term2 =              int.from_bytes(message_schedule[t - 7] , byteorder='big')
-                    term3 = CONST.sigma0(int.from_bytes(message_schedule[t - 15], byteorder='big'))
-                    term4 =              int.from_bytes(message_schedule[t - 16], byteorder='big')
+                    term1 = CONST.sigma1(int.from_bytes(W[t - 2] , byteorder='big'))
+                    term2 =              int.from_bytes(W[t - 7] , byteorder='big')
+                    term3 = CONST.sigma0(int.from_bytes(W[t - 15], byteorder='big'))
+                    term4 =              int.from_bytes(W[t - 16], byteorder='big')
 
                     schedule = (
                         (term1 + term2 + term3 + term4) & 0xffffffffffffffff
                     ).to_bytes(length=8, byteorder='big')
-                    message_schedule.append(schedule)
-            assert len(message_schedule) == 80
+                    W.append(schedule)
+            assert len(W) == 80
 
             ''' Step 2: Initialize the eight working variables with the   
                     (i-1)-st hash value.
@@ -133,7 +133,7 @@ class SHA512(HASH):
             '''
             for t in range(80):
                 T1 = h + CONST.SIGMA1(e) + CONST.Ch(e, f, g) + CONST.K[t] + \
-                            int.from_bytes(message_schedule[t], byteorder='big')
+                            int.from_bytes(W[t], byteorder='big')
                 T2 = CONST.SIGMA0(a) + CONST.Maj(a, b, c)
 
                 h = g
