@@ -14,13 +14,11 @@ class HASH:
     def _update(self, message):
         self.original_message += message
     
-    def _preprocessing(self):
+    def _padding(self):
         # Get current message
-
         message = self.original_message
 
         # Padding the Message
-
         bit_length = len(message) * 8
         message += b"\x80" 
         while (len(message) * 8 + self.BLOCK_SIZE) % (self.BLOCK_SIZE * 8):
@@ -32,12 +30,17 @@ class HASH:
 
         assert len(message) % self.BLOCK_SIZE == 0, \
                 "Something goes wrong when padding!"
-
+    
+        return message
+    
+    def _parsing(self, padded_message):
         # Parsing the Message
 
-        self.blocks = []
-        for i in range(0, len(message), self.BLOCK_SIZE):
-            self.blocks.append(message[i : i + self.BLOCK_SIZE])
-        
+        blocks = []
+        for i in range(0, len(padded_message), self.BLOCK_SIZE):
+            blocks.append(padded_message[i : i + self.BLOCK_SIZE])
+
+        return blocks
+
     def _hashing(self):
         pass
