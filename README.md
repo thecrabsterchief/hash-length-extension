@@ -1,21 +1,29 @@
 # HashTools
 
-Hash length extension attacks
+This small project to reproducing length extension attack on some hash functions.
+
+# Supported
+
+| Algorithm | Implementation     |  Length Extension Attack |
+| :-------: | :----------------: | :----------------------: |
+| MD5       | :white_check_mark: | :white_check_mark:       |
+| SHA1      | :white_check_mark: | :white_check_mark:       |
+| SHA224    | :white_check_mark: | :x:                      |
+| SHA256    | :white_check_mark: | :white_check_mark:       |
+| SHA384    | :white_check_mark: | :x:                      |
+| SHA512    | :white_check_mark: | :white_check_mark:       |
 
 # Testing
 
+- Compare my implementation with [python hashlib](https://docs.python.org/3/library/hashlib.html)
+
 ```python
-import HashTools
-import hashlib
+def test_imple():
+    algorithms = [
+        "md5", "sha1", "sha224", "sha256", "sha384", "sha512"
+    ]
 
-from os import urandom
-from random import randint
-
-algorithms = [
-    "md5", "sha1", "sha224", "sha256", "sha384", "sha512"
-]
-
-def test():
+    print("> Implementation test...")
     for alg in algorithms:
         msg = urandom(randint(0, 1024))
 
@@ -29,20 +37,48 @@ def test():
         test2 = my_hash.hexdigest()
         
         if test1 != test2:
-            print(f"Algorithm {alg} failed the validation test!")
+            print(f"[!] {alg.ljust(6)} failed the validation test!")
             print(test1)
             print(test2)
-            exit()
-    
-    print("All test passed!!!")
+            exit(1)
+        else:
+            print(f"[+] {alg.ljust(6)} passed the validation test!")
 
-if __name__ == "__main__":
-    test()
+    print("> All test passed!!!")
 ```
 
-# Explaination
+- Testing length extension attack
 
-Update later
+```python
+def test_attack():
+    algorithms = [
+        "md5", "sha1", "sha256", "sha512"
+    ]
+
+    print("> Implementation test...")
+    for alg in algorithms:
+        # setup context
+        length = randint(0, 1024)           
+        secret = urandom(length)            # idk ¯\_(ツ)_/¯
+        original_data = b"admin=False"
+        sig = HashTools.new(algorithm=alg, raw=secret + original_data).hexdigest()
+        
+        # attack
+        append_data = b"admin=True;"
+        magic = HashTools.new(alg)
+        new_data, new_sig = magic.extension(
+            secret_length=length, original_data=original_data,
+            append_data=append_data, signature=sig
+        )
+
+        if new_sig != HashTools.new(algorithm=alg, raw=secret + new_data).hexdigest():
+            print(f"[!] Our attack didn't work with {alg.ljust(6)}")
+            exit(1)
+        else:
+            print(f"[+] {alg.ljust(6)} passed")
+
+    print("> All test passed!!!")
+```
 
 # License
 
