@@ -14,11 +14,9 @@ class HASH:
     def _update(self, message):
         self.original_message += message
     
-    def _padding(self):
-        # Get current message
-        message = self.original_message
-
+    def _padding(self, message):
         # Padding the Message
+
         bit_length = len(message) * 8
         message += b"\x80" 
         while (len(message) * 8 + self.BLOCK_SIZE) % (self.BLOCK_SIZE * 8):
@@ -42,5 +40,5 @@ class HASH:
 
         return blocks
 
-    def _hashing(self):
+    def __hashing(self):
         pass

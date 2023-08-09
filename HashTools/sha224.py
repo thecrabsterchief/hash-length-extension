@@ -71,16 +71,22 @@ class CONST:
 class SHA224(HASH):
     def __init__(self, message=b"") -> None:
         super().__init__(message=message, block_size=64)        
-        self.digest = self._hashing()
+        self.__digest = self.__hasing()
 
     def update(self, message=b""):
         super()._update(message=message)
-        self.digest = self._hashing()
+        self.__digest = self.__hasing()
 
-    def _hashing(self):
+    def digest(self):
+        return self.__digest
+    
+    def hexdigest(self):
+        return self.__digest.hex()
+    
+    def __hasing(self):
         # preprocessing
-        padded_message = self._padding()                # padding
-        blocks         = self._parsing(padded_message)  # parsing
+        padded_message = self._padding(self.original_message)   # padding
+        blocks         = self._parsing(padded_message)          # parsing
 
         # Setting Initial Hash Value
         h0, h1, h2, h3, h4, h5, h6, h7 = [
@@ -149,6 +155,3 @@ class SHA224(HASH):
                 (h2).to_bytes(4, byteorder='big') + (h3).to_bytes(4, byteorder='big') + \
                 (h4).to_bytes(4, byteorder='big') + (h5).to_bytes(4, byteorder='big') + \
                 (h6).to_bytes(4, byteorder='big')
-    
-    def hexdigest(self):
-        return self.digest.hex()

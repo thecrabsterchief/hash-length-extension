@@ -71,22 +71,67 @@ class CONST:
 class SHA256(HASH):
     def __init__(self, message=b"") -> None:
         super().__init__(message=message, block_size=64)        
-        self.digest = self._hashing()
+        self.__digest = self.__hashing()
 
     def update(self, message=b""):
         super()._update(message=message)
-        self.digest = self._hashing()
+        self.__digest = self.__hashing()
 
-    def _hashing(self):
-        # preprocessing
-        padded_message = self._padding()                # padding
-        blocks         = self._parsing(padded_message)  # parsing
+    def digest(self):
+        return self.__digest
+    
+    def hexdigest(self):
+        return self.__digest.hex()
+    
+    # length extension attack
+    def extension(self, 
+            secret_length: int, original_data: bytes, 
+            append_data: bytes, signature: str
+        ):
+        
+        assert isinstance(secret_length, int) and secret_length >= 0, \
+            "What did you mean a negative (or non-integer) length?"
+        
+        assert isinstance(signature, str) and len(signature) == 64, \
+            "Make sure you have a correct MD5 signature: 256 bits in hex"
+        
+        signature = bytes.fromhex(signature)
+        old_padded = self._padding(
+            message = bytes(secret_length) + original_data
+        )
 
-        # Setting Initial Hash Value
-        h0, h1, h2, h3, h4, h5, h6, h7 = [
-            CONST.H0, CONST.H1, CONST.H2 , CONST.H3,
-            CONST.H4, CONST.H5, CONST.H6 , CONST.H7
+        last_blocks = self._padding(
+            message = bytes(secret_length) + original_data + \
+                        old_padded[secret_length + len(original_data) : ] + append_data
+        )[len(old_padded):]
+
+        init_block = [
+            int.from_bytes(signature[i : i + 4], byteorder='big') for i in range(0, len(signature), 4)
         ]
+
+        new_digest = self.__hashing(init_block=init_block, last_blocks=last_blocks)
+        new_data   = original_data + old_padded[secret_length + len(original_data):] + append_data
+
+        return new_data, new_digest.hex()
+
+    def __hashing(self, init_block=None, last_blocks=None):
+        # setup parameter if we use length extension attack
+        if last_blocks and init_block:
+            # preprocessing
+            blocks  = self._parsing(last_blocks)
+
+            # Setting Initial Hash Value
+            h0, h1, h2, h3, h4, h5, h6, h7 = init_block
+        else:
+            # preprocessing
+            padded_message = self._padding(self.original_message)   # padding
+            blocks         = self._parsing(padded_message)          # parsing
+            
+            # Setting Initial Hash Value
+            h0, h1, h2, h3, h4, h5, h6, h7 = [
+                CONST.H0, CONST.H1, CONST.H2, CONST.H3, 
+                CONST.H4, CONST.H5, CONST.H6, CONST.H7
+            ]
 
         # SHA-256 Hashing Algorithm
         for message_block in blocks:
@@ -149,6 +194,3 @@ class SHA256(HASH):
                 (h2).to_bytes(4, byteorder='big') + (h3).to_bytes(4, byteorder='big') + \
                 (h4).to_bytes(4, byteorder='big') + (h5).to_bytes(4, byteorder='big') + \
                 (h6).to_bytes(4, byteorder='big') + (h7).to_bytes(4, byteorder='big')
-
-    def hexdigest(self):
-        return self.digest.hex()

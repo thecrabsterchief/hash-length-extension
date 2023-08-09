@@ -9,7 +9,7 @@ from typing import Union
 
 __version__ = "0.0.1"
 
-def new(algorithm) -> Union[
+def new(algorithm, raw=b"") -> Union[
         MD5, SHA1, SHA224, SHA256, SHA384, SHA512
     ]:
     obj = {
@@ -19,7 +19,7 @@ def new(algorithm) -> Union[
         "sha256" :  SHA256,
         "sha384" :  SHA384,
         "sha512" :  SHA512
-    }[algorithm]()
+    }[algorithm](raw)
 
     return obj
 

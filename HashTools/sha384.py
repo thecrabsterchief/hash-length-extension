@@ -83,16 +83,22 @@ class CONST:
 class SHA384(HASH):
     def __init__(self, message=b"") -> None:
         super().__init__(message=message, block_size=128)        
-        self.digest = self._hashing()
+        self.__digest = self.__hashing()
 
     def update(self, message=b""):
         super()._update(message=message)
-        self.digest = self._hashing()
+        self.__digest = self.__hashing()
 
-    def _hashing(self):
+    def digest(self):
+        return self.__digest
+    
+    def hexdigest(self):
+        return self.__digest.hex()
+    
+    def __hashing(self):
         # preprocessing
-        padded_message = self._padding()                # padding
-        blocks         = self._parsing(padded_message)  # parsing
+        padded_message = self._padding(self.original_message)   # padding
+        blocks         = self._parsing(padded_message)          # parsing
 
         # Setting Initial Hash Value
         h0, h1, h2, h3, h4, h5, h6, h7 = [
@@ -160,6 +166,3 @@ class SHA384(HASH):
         return  (h0).to_bytes(8, byteorder='big') + (h1).to_bytes(8, byteorder='big') + \
                 (h2).to_bytes(8, byteorder='big') + (h3).to_bytes(8, byteorder='big') + \
                 (h4).to_bytes(8, byteorder='big') + (h5).to_bytes(8, byteorder='big')
-
-    def hexdigest(self):
-        return self.digest.hex()

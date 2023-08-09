@@ -62,18 +62,22 @@ class CONST:
 class MD5(HASH):
     def __init__(self, message=b"") -> None:
         super().__init__(message, block_size=64)
-        self.digest = self._hashing()
+        self.__digest = self.__hashing()
 
     def update(self, message=b""):
         super()._update(message=message)
-        self.digest = self._hashing()
+        self.__digest = self.__hashing()
 
+    def digest(self):
+        return self.__digest
+    
+    def hexdigest(self):
+        return self.__digest.hex()
+    
     # md5 use little endian
-    def _padding(self):
-        # Get current message
-        message = self.original_message
-
+    def _padding(self, message):
         # Padding the Message
+
         bit_length = len(message) * 8
         message += b"\x80" 
         while (len(message) * 8 + self.BLOCK_SIZE) % (self.BLOCK_SIZE * 8):
@@ -88,15 +92,53 @@ class MD5(HASH):
     
         return message
     
-    def _hashing(self):
-        # preprocessing
-        padded_message = self._padding()                # padding
-        blocks         = self._parsing(padded_message)  # parsing
+    # length extension attack
+    def extension(self, 
+            secret_length: int, original_data: bytes, 
+            append_data: bytes, signature: str
+        ):
+        
+        assert isinstance(secret_length, int) and secret_length >= 0, \
+            "What did you mean a negative (or non-integer) length?"
+        
+        assert isinstance(signature, str) and len(signature) == 32, \
+            "Make sure you have a correct MD5 signature: 128 bits in hex"
+        
+        signature = bytes.fromhex(signature)
+        old_padded = self._padding(
+            message = bytes(secret_length) + original_data
+        )
 
-        # Setting Initial Hash Value
-        a0, b0, c0, d0 = [
-            CONST.A, CONST.B, CONST.C, CONST.D
+        last_blocks = self._padding(
+            message = bytes(secret_length) + original_data + \
+                        old_padded[secret_length + len(original_data) : ] + append_data
+        )[len(old_padded):]
+
+        init_block = [
+            int.from_bytes(signature[i : i + 4], byteorder='little') for i in range(0, len(signature), 4)
         ]
+
+        new_digest = self.__hashing(init_block=init_block, last_blocks=last_blocks)
+        new_data   = original_data + old_padded[secret_length + len(original_data):] + append_data
+
+        return new_data, new_digest.hex()
+
+    def __hashing(self, init_block=None, last_blocks=None):
+        # setup parameter if we use length extension attack
+        if last_blocks and init_block:
+            # preprocessing
+            blocks  = self._parsing(last_blocks)
+
+            # Setting Initial Hash Value
+            a0, b0, c0, d0 = init_block
+        else:
+            # preprocessing
+            padded_message = self._padding(self.original_message)   # padding
+            blocks         = self._parsing(padded_message)          # parsing
+            
+            # Setting Initial Hash Value
+            a0, b0, c0, d0 = [CONST.A, CONST.B, CONST.C, CONST.D]
+
 
         # md5 Hashing Algorithm
         for message_block in blocks:
@@ -144,6 +186,3 @@ class MD5(HASH):
         # Resulting 128-bit message digest
         return  (a0).to_bytes(4, byteorder='little') + (b0).to_bytes(4, byteorder='little') + \
                 (c0).to_bytes(4, byteorder='little') + (d0).to_bytes(4, byteorder='little')
-
-    def hexdigest(self):
-        return self.digest.hex()
