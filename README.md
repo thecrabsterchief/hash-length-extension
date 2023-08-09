@@ -1,6 +1,6 @@
 # HashTools
 
-This small project to reproducing length extension attack on some hash functions.
+Reproducing length extension attack on some hash functions.
 
 # Supported
 
