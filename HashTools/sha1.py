@@ -8,11 +8,12 @@ class CONST:
     H3 = 0x10325476
     H4 = 0xC3D2E1F0
 
-    # Magic constants
+    # Magic constants value to be used for each iteration.
     K = [
         0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6
     ]
-
+    
+    # Number of bits in a word
     WORD_SIZE = 32
 
     # The rotate left (circular left shift) operation.
@@ -50,9 +51,13 @@ class SHA1(HASH):
         self.__digest = self._hashing()
 
     def digest(self):
+        """Return message digest in raw bytes"""
+
         return self.__digest
 
     def hexdigest(self):
+        """Return message digest in hex format"""
+
         return self.__digest.hex()
     
     # length extension attack
@@ -60,12 +65,24 @@ class SHA1(HASH):
             secret_length: int, original_data: bytes, 
             append_data: bytes, signature: str
         ):
+        """ Length Extension Attack. Compute message digest without knowing 
+            the `secret` value:
+                `sha1(secret || original_data) = signature`  (1)
+        
+        :param `secret_length`: len(secret).
+        :param `original_data`: the original data.
+        :param `append_data`  : what ever you want.
+        :param `signature`    : the value satisfies (1)
+        :return: the tuple value `(new_data, new_digest)` that satisfies:
+                `sha1(secret || new_data) = new_digest`
+            where `new_data = original_data || padding || append_data`.
+        """
         
         assert isinstance(secret_length, int) and secret_length >= 0, \
             "What did you mean a negative (or non-integer) length?"
         
         assert isinstance(signature, str) and len(signature) == 40, \
-            "Make sure you have a correct MD5 signature: 160 bits in hex"
+            "Make sure you have a correct SHA1 signature: 160 bits in hex"
         
         signature = bytes.fromhex(signature)
         old_padded = self._padding(

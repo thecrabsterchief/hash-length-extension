@@ -11,7 +11,7 @@ class CONST:
     H6 = 0xdb0c2e0d64f98fa7
     H7 = 0x47b5481dbefa4fa4
 
-    # Magic constants
+    # Magic constants value to be used for each iteration.
     K = [
         0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 
         0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 
@@ -35,6 +35,7 @@ class CONST:
         0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
     ]
 
+    # Number of bits in a word
     WORD_SIZE = 64
 
     # The rotate right (circular right shift) operation.
@@ -90,9 +91,13 @@ class SHA384(HASH):
         self.__digest = self.__hashing()
 
     def digest(self):
+        """Return message digest in raw bytes"""
+
         return self.__digest
     
     def hexdigest(self):
+        """Return message digest in hex format"""
+
         return self.__digest.hex()
     
     def __hashing(self):

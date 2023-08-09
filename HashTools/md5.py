@@ -7,7 +7,7 @@ class CONST:
     C = 0x98badcfe
     D = 0x10325476
 
-    # Magic constants
+    # Magic constants value to be used for each iteration.
     K = [
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, 0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
@@ -27,6 +27,7 @@ class CONST:
         6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
     ]
 
+    # Number of bits in a word
     WORD_SIZE = 32
 
     # The rotate left (circular left shift) operation.
@@ -69,34 +70,32 @@ class MD5(HASH):
         self.__digest = self.__hashing()
 
     def digest(self):
+        """Return message digest in raw bytes"""
+
         return self.__digest
     
     def hexdigest(self):
+        """Return message digest in hex format"""
+
         return self.__digest.hex()
-    
-    # md5 use little endian
-    def _padding(self, message):
-        # Padding the Message
 
-        bit_length = len(message) * 8
-        message += b"\x80" 
-        while (len(message) * 8 + self.BLOCK_SIZE) % (self.BLOCK_SIZE * 8):
-            message += b"\x00"
-        
-        message += bit_length.to_bytes(
-            length=self.BLOCK_SIZE//8, byteorder='little'
-        )
-
-        assert len(message) % self.BLOCK_SIZE == 0, \
-                "Something goes wrong when padding!"
-    
-        return message
-    
     # length extension attack
     def extension(self, 
             secret_length: int, original_data: bytes, 
             append_data: bytes, signature: str
         ):
+        """ Length Extension Attack. Compute message digest without knowing 
+            the `secret` value:
+                `md5(secret || original_data) = signature`  (1)
+        
+        :param `secret_length`: len(secret).
+        :param `original_data`: the original data.
+        :param `append_data`  : what ever you want.
+        :param `signature`    : the value satisfies (1)
+        :return: the tuple value `(new_data, new_digest)` that satisfies:
+                `md5(secret || new_data) = new_digest`
+            where `new_data = original_data || padding || append_data`.
+        """
         
         assert isinstance(secret_length, int) and secret_length >= 0, \
             "What did you mean a negative (or non-integer) length?"
@@ -123,6 +122,24 @@ class MD5(HASH):
 
         return new_data, new_digest.hex()
 
+    # md5 use little endian
+    def _padding(self, message):
+        # Padding the Message
+
+        bit_length = len(message) * 8
+        message += b"\x80" 
+        while (len(message) * 8 + self.BLOCK_SIZE) % (self.BLOCK_SIZE * 8):
+            message += b"\x00"
+        
+        message += bit_length.to_bytes(
+            length=self.BLOCK_SIZE//8, byteorder='little'
+        )
+
+        assert len(message) % self.BLOCK_SIZE == 0, \
+                "Something goes wrong when padding!"
+    
+        return message
+    
     def __hashing(self, init_block=None, last_blocks=None):
         # setup parameter if we use length extension attack
         if last_blocks and init_block:
@@ -131,6 +148,7 @@ class MD5(HASH):
 
             # Setting Initial Hash Value
             a0, b0, c0, d0 = init_block
+            
         else:
             # preprocessing
             padded_message = self._padding(self.original_message)   # padding

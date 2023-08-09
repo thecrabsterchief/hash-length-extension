@@ -11,7 +11,7 @@ class CONST:
     H6 = 0x1f83d9ab
     H7 = 0x5be0cd19
 
-    # Magic constants
+    # Magic constants value to be used for each iteration.
     K = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
         0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -23,6 +23,7 @@ class CONST:
         0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
     ]
 
+    # Number of bits in a word
     WORD_SIZE = 32
 
     # The rotate right (circular right shift) operation.
@@ -78,9 +79,13 @@ class SHA256(HASH):
         self.__digest = self.__hashing()
 
     def digest(self):
+        """Return message digest in raw bytes"""
+
         return self.__digest
     
     def hexdigest(self):
+        """Return message digest in hex format"""
+
         return self.__digest.hex()
     
     # length extension attack
@@ -88,12 +93,24 @@ class SHA256(HASH):
             secret_length: int, original_data: bytes, 
             append_data: bytes, signature: str
         ):
+        """ Length Extension Attack. Compute message digest without knowing 
+            the `secret` value:
+                `sha256(secret || original_data) = signature`  (1)
+        
+        :param `secret_length`: len(secret).
+        :param `original_data`: the original data.
+        :param `append_data`  : what ever you want.
+        :param `signature`    : the value satisfies (1)
+        :return: the tuple value `(new_data, new_digest)` that satisfies:
+                `sha256(secret || new_data) = new_digest`
+            where `new_data = original_data || padding || append_data`.
+        """
         
         assert isinstance(secret_length, int) and secret_length >= 0, \
             "What did you mean a negative (or non-integer) length?"
         
         assert isinstance(signature, str) and len(signature) == 64, \
-            "Make sure you have a correct MD5 signature: 256 bits in hex"
+            "Make sure you have a correct SHA256 signature: 256 bits in hex"
         
         signature = bytes.fromhex(signature)
         old_padded = self._padding(

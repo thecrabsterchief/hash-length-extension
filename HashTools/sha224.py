@@ -23,6 +23,7 @@ class CONST:
         0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
     ]
 
+    # Number of bits in a word
     WORD_SIZE = 32
 
     # The rotate right (circular right shift) operation.
@@ -78,9 +79,13 @@ class SHA224(HASH):
         self.__digest = self.__hasing()
 
     def digest(self):
+        """Return message digest in raw bytes"""
+
         return self.__digest
     
     def hexdigest(self):
+        """Return message digest in hex format"""
+
         return self.__digest.hex()
     
     def __hasing(self):
