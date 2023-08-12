@@ -1,8 +1,8 @@
 # HashTools
 
-Reproducing length extension attack on some hash functions.
+This is a pure python project implementing hash length extension attack. It also supports the implementation of some popular hashing algorithms.
 
-# Supported
+## Currently Supported Algorithms
 
 | Algorithm | Implementation     |  Length Extension Attack |
 | :-------: | :----------------: | :----------------------: |
@@ -13,7 +13,58 @@ Reproducing length extension attack on some hash functions.
 | SHA384    | :white_check_mark: | :x:                      |
 | SHA512    | :white_check_mark: | :white_check_mark:       |
 
-# Testing
+## Installation
+
+```shell
+pip install HashTools
+```
+
+## Usage
+
+### Using algorithm normally
+
+Using `update` method (like [python hashlib](https://docs.python.org/3/library/hashlib.html))
+
+```python
+import HashTools
+
+magic = HashTools.new(algorithm="sha256")
+magic.update(b"Hello World!")
+print(magic.hexdigest())
+```
+
+or just one line
+
+```python
+import HashTools
+
+msg = b"Hello World!"
+print(HashTools.new(algorithm="sha256", raw=msg).hexdigest())
+```
+
+### Using hash length extension attack
+
+Using `extension` method
+
+```python
+import HashTools
+from os import urandom
+
+# setup context
+secret = urandom(16)        # idk ¯\_(ツ)_/¯
+original_data = b"&admin=False"
+sig = HashTools.new(algorithm="sha256", raw=secret+original_data).hexdigest()
+
+# attack
+append_data = b"&admin=True"
+magic = HashTools.new("sha256")
+new_data, new_sig = magic.extension(
+    secret_length=16, original_data=original_data,
+    append_data=append_data, signature=sig
+)
+```
+
+## Testing
 
 - Compare my implementation with [python hashlib](https://docs.python.org/3/library/hashlib.html)
 
@@ -80,10 +131,10 @@ def test_attack():
     print("> All test passed!!!")
 ```
 
-# License
+## License
 
 - [MIT License](./License)
 
-# References
+## References
 
-- Standard, D. E. (1977). Federal information processing standards publication 46. National Bureau of Standards, US Department of Commerce, 23, 1-18.
+- Pub, F. I. P. S. (2012). Secure hash standard (shs). Fips pub, 180(4).
