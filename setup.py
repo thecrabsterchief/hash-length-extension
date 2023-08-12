@@ -14,7 +14,6 @@ classifiers = [
 
 setup(
     name="HashTools",
-    packages=["HashTools"],
     version="0.0.1",
     license="MIT",
     description="A pure python tool to implement/exploit the hash length extension attack",
