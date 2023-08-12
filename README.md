@@ -1,4 +1,4 @@
-# HashTools
+# length-extesion-tool
 
 This is a pure python project implementing hash length extension attack. It also supports the implementation of some popular hashing algorithms.
 
@@ -16,7 +16,7 @@ This is a pure python project implementing hash length extension attack. It also
 ## Installation
 
 ```shell
-pip install HashTools
+pip install length-extension-tool
 ```
 
 ## Usage

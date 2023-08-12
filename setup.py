@@ -13,8 +13,8 @@ classifiers = [
 ]
 
 setup(
-    name="HashTools",
-    version="0.0.1",
+    name="length-extension-tool",
+    version="0.1.0",
     license="MIT",
     description="A pure python tool to implement/exploit the hash length extension attack",
     long_description=long_desc,
