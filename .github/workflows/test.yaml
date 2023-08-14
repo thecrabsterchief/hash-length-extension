@@ -1,4 +1,4 @@
-name: Run pytest
+name: HashTools Testing
 
 on:
   push:
@@ -11,18 +11,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: "${{ matrix.python-version }}"
+        python-version: 3.x
 
     - name: Install pytest
       run: |
